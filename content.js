@@ -32,7 +32,8 @@ function convertText(text, fromVariant, toVariant) {
       const phrase = text.substr(i, len);
       if (table[phrase]) {
         const replacement = Array.isArray(table[phrase]) ? table[phrase][0] : table[phrase];
-        result += replacement;
+        // Wrap replacement in a span with highlight class
+        result += `<GlobalNoteTA class="highlight${conversions % 2}">${replacement}</GlobalNoteTA>`;
         i += len;
         matched = true;
         conversions++;
@@ -57,13 +58,26 @@ function convertPage() {
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
   let node;
   let nodesConverted = 0;
+  const nodesToUpdate = [];
+
   while (node = walker.nextNode()) {
-    if (node.parentElement && node.parentElement.tagName !== 'SCRIPT' && node.parentElement.tagName !== 'STYLE') {
+    if (node.parentElement && node.parentElement.tagName !== 'SCRIPT' && node.parentElement.tagName !== 'STYLE' && node.parentElement.tagName !== 'GLOBALNOTETA') {
       const original = node.textContent;
-      node.textContent = convertText(node.textContent, 'auto', currentVariant);
-      if (node.textContent !== original) nodesConverted++;
+      const converted = convertText(original, 'auto', currentVariant);
+      if (converted !== original) {
+        nodesToUpdate.push({ node, converted });
+        nodesConverted++;
+      }
     }
   }
+
+  // Replace text nodes with HTML spans
+  nodesToUpdate.forEach(({ node, converted }) => {
+    const span = document.createElement('span');
+    span.innerHTML = converted;
+    node.parentElement.replaceChild(span, node);
+  });
+
   console.log(`Converted ${nodesConverted} text nodes.`);
 }
 
@@ -75,8 +89,8 @@ function createFloatingMenu() {
     <style>
       #globalnoteta-menu {
         position: fixed;
-        top: 10px;
-        right: 10px;
+        bottom: 10px;
+        left: 10px;
         background: white;
         border: 1px solid #ccc;
         padding: 10px;
@@ -89,6 +103,16 @@ function createFloatingMenu() {
         margin: 2px;
         padding: 5px 10px;
         cursor: pointer;
+      }
+      .highlight0 { 
+        background-color: yellow; /* Change to your preferred color */
+        border-radius: 3px;
+        padding: 0 2px;
+      }
+      .highlight1 { 
+        background-color: orange; /* Change to your preferred color */
+        border-radius: 3px;
+        padding: 0 2px;
       }
     </style>
     <div>
