@@ -43,5 +43,7 @@ Open-source, align with Wikipedia's terms.
 - floating menu
 - progress bar
 - dark mode
+- toggle debug highlight
+- allow quick un-convert
 - noteTA support
 - custom rules support
