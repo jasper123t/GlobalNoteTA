@@ -1,0 +1,25 @@
+{
+  "manifest_version": 2,
+  "name": "GlobalNoteTA",
+  "version": "1.0",
+  "description": "Convert webpage text between simplified and traditional Chinese using Wikipedia tables.",
+  "permissions": ["activeTab", "storage", "https://zh.wikipedia.org/*", "https://phab.wmfusercontent.org/*"],
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ],
+  "browser_action": {
+    "default_popup": "popup.html",
+    "default_title": "GlobalNoteTA"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
