@@ -123,24 +123,17 @@ function createFloatingMenu() {
         padding: 5px 10px;
         cursor: pointer;
       }
-      .show-highlight:nth-child(2n) {
-        background-color: orange;
+      GlobalNoteTA_phrase:nth-child(2n) {
+        background-color: var(--debug-color0, none);
       }
-      .show-highlight:nth-child(2n+1) {
-        background-color: yellow;
+      GlobalNoteTA_phrase:nth-child(2n+1) {
+        background-color: var(--debug-color1, none);
       }
-      GlobalNoteTA_o_node {
-        display: none;
+      globalnoteta_o_node {
+        display: var(--original-display, none);
       }
-      GlobalNoteTA_c_node {
-        display: inline;
-      }
-      /* Toggle original version */
-      GlobalNoteTA_w_node.show-original GlobalNoteTA_o_node {
-        display: inline;
-      }
-      GlobalNoteTA_w_node.show-original GlobalNoteTA_c_node {
-        display: none;
+      globalnoteta_c_node {
+        display: var(--converted-display, inline);
       }
     </style>
     <div>
@@ -178,13 +171,14 @@ function createFloatingMenu() {
     showOriginal = e.target.checked;
     chrome.storage.local.set({ showOriginal });
 
-    document.querySelectorAll("GlobalNoteTA_w_node").forEach(el => {
-      if (showOriginal) {
-        el.classList.add("show-original");
-      } else {
-        el.classList.remove("show-original");
-      } 
-    });
+    if (showOriginal) {
+      document.documentElement.style.setProperty('--original-display', 'inline');
+      document.documentElement.style.setProperty('--converted-display', 'none');
+    } else {
+      document.documentElement.style.setProperty('--original-display', 'none');
+      document.documentElement.style.setProperty('--converted-display', 'inline');
+    }
+    
   });
 
   document.getElementById('enable-highlight').addEventListener('change', (e) => {
@@ -193,9 +187,11 @@ function createFloatingMenu() {
 
     document.querySelectorAll("GlobalNoteTA_phrase").forEach(el => {
       if (highlightEnabled) {
-        el.classList.add("show-highlight");
+        document.documentElement.style.setProperty('--debug-color0', 'orange');
+        document.documentElement.style.setProperty('--debug-color1', 'yellow');
       } else {
-        el.classList.remove("show-highlight");
+        document.documentElement.style.setProperty('--debug-color0', 'none');
+        document.documentElement.style.setProperty('--debug-color1', 'none');
       } 
     });
   });
