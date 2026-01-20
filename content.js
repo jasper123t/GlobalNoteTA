@@ -170,30 +170,13 @@ function createFloatingMenu() {
   document.getElementById('show-original').addEventListener('change', (e) => {
     showOriginal = e.target.checked;
     chrome.storage.local.set({ showOriginal });
-
-    if (showOriginal) {
-      document.documentElement.style.setProperty('--original-display', 'inline');
-      document.documentElement.style.setProperty('--converted-display', 'none');
-    } else {
-      document.documentElement.style.setProperty('--original-display', 'none');
-      document.documentElement.style.setProperty('--converted-display', 'inline');
-    }
-    
+    loadPref();
   });
 
   document.getElementById('enable-highlight').addEventListener('change', (e) => {
     highlightEnabled = e.target.checked;
     chrome.storage.local.set({ highlightEnabled });
-
-    document.querySelectorAll("GlobalNoteTA_phrase").forEach(el => {
-      if (highlightEnabled) {
-        document.documentElement.style.setProperty('--debug-color0', 'orange');
-        document.documentElement.style.setProperty('--debug-color1', 'yellow');
-      } else {
-        document.documentElement.style.setProperty('--debug-color0', 'none');
-        document.documentElement.style.setProperty('--debug-color1', 'none');
-      } 
-    });
+    loadPref();
   });
 
   document.getElementById('variant-select').addEventListener('change', (e) => {
@@ -219,7 +202,29 @@ function createFloatingMenu() {
     document.getElementById('enable-conversion').checked = conversionEnabled;
     document.getElementById('show-original').checked = showOriginal;
     document.getElementById('enable-highlight').checked = highlightEnabled;
+    loadPref();
   });
+}
+
+// load css
+function loadPref() {
+  // Show original
+  if (showOriginal) {
+    document.documentElement.style.setProperty('--original-display', 'inline');
+    document.documentElement.style.setProperty('--converted-display', 'none');
+  } else {
+    document.documentElement.style.setProperty('--original-display', 'none');
+    document.documentElement.style.setProperty('--converted-display', 'inline');
+  }
+
+  // Debug highlight
+  if (highlightEnabled) {
+    document.documentElement.style.setProperty('--debug-color0', 'orange');
+    document.documentElement.style.setProperty('--debug-color1', 'yellow');
+  } else {
+    document.documentElement.style.setProperty('--debug-color0', 'none');
+    document.documentElement.style.setProperty('--debug-color1', 'none');
+  } 
 }
 
 // Initialize on page load

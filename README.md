@@ -39,7 +39,8 @@ Open-source, align with Wikipedia's terms.
 
 ### todo
 - [ ] bugs
-    - [ ] css for debug highlight and show original might not be loaded 
+    - [ ] css for debug highlight and show original might not be loaded
+        - [ ] seems to be fixed, but conversion can happen earlier
 - [ ] clean up ai mess
     - [ ] tables loading slowly
     - [ ] table names (s2t, t2s)
