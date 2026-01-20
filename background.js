@@ -7,7 +7,7 @@ const tables = {};
 
 async function fetchGlobalTables() {
   try {
-    const url = 'https://phab.wmfusercontent.org/file/data/cutpticdzdngbfkyy364/PHID-FILE-bcokffm7o4eadjbf2onh/ZhConversion.php';
+    const url = 'https://phabricator.wikimedia.org/source/mediawiki/browse/master/includes/Languages/Data/ZhConversion.php?view=raw';
     const response = await fetch(url);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const phpContent = await response.text();
