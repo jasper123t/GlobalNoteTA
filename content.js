@@ -4,6 +4,8 @@
 let tables = {};
 let currentVariant = 'zh-tw'; // Default to traditional
 let conversionEnabled = false;
+let showOriginal = false;
+let highlightEnabled = false;
 
 // Load tables from storage
 chrome.runtime.sendMessage({ action: 'getTables' }, (response) => {
@@ -33,7 +35,7 @@ function convertText(text, fromVariant, toVariant) {
       if (table[phrase]) {
         const replacement = Array.isArray(table[phrase]) ? table[phrase][0] : table[phrase];
         // Wrap replacement in a span with highlight class
-        result += `<GlobalNoteTA class="highlight${conversions % 2}">${replacement}</GlobalNoteTA>`;
+        result += `<GlobalNoteTA_phrase>${replacement}</GlobalNoteTA_phrase>`;
         i += len;
         matched = true;
         conversions++;
@@ -61,7 +63,14 @@ function convertPage() {
   const nodesToUpdate = [];
 
   while (node = walker.nextNode()) {
-    if (node.parentElement && node.parentElement.tagName !== 'SCRIPT' && node.parentElement.tagName !== 'STYLE' && node.parentElement.tagName !== 'GLOBALNOTETA') {
+    if (
+      node.parentElement
+      && node.parentElement.tagName !== 'SCRIPT'
+      && node.parentElement.tagName !== 'STYLE'
+      && node.parentElement.tagName !== 'GLOBALNOTETA_O_NODE'
+      && node.parentElement.tagName !== 'GLOBALNOTETA_C_NODE'
+      && node.parentElement.tagName !== 'GLOBALNOTETA_PHRASE'
+    ) {
       const original = node.textContent;
       const converted = convertText(original, 'auto', currentVariant);
       if (converted !== original) {
@@ -73,9 +82,19 @@ function convertPage() {
 
   // Replace text nodes with HTML spans
   nodesToUpdate.forEach(({ node, converted }) => {
-    const span = document.createElement('span');
-    span.innerHTML = converted;
-    node.parentElement.replaceChild(span, node);
+    const w_node = document.createElement('GlobalNoteTA_w_node');
+
+    const o_node = document.createElement('GlobalNoteTA_o_node');
+    o_node.textContent = node.textContent;
+    w_node.appendChild(o_node);
+
+    const c_node = document.createElement('GlobalNoteTA_c_node');
+    c_node.innerHTML = converted;
+    w_node.appendChild(c_node);
+
+    node.parentElement.replaceChild(w_node, node);
+
+    console.log(node.parentElement);
   });
 
   console.log(`Converted ${nodesConverted} text nodes.`);
@@ -104,19 +123,34 @@ function createFloatingMenu() {
         padding: 5px 10px;
         cursor: pointer;
       }
-      .highlight0 { 
-        background-color: yellow; /* Change to your preferred color */
-        border-radius: 3px;
-        padding: 0 2px;
+      .show-highlight:nth-child(2n) {
+        background-color: orange;
       }
-      .highlight1 { 
-        background-color: orange; /* Change to your preferred color */
-        border-radius: 3px;
-        padding: 0 2px;
+      .show-highlight:nth-child(2n+1) {
+        background-color: yellow;
+      }
+      GlobalNoteTA_o_node {
+        display: none;
+      }
+      GlobalNoteTA_c_node {
+        display: inline;
+      }
+      /* Toggle original version */
+      GlobalNoteTA_w_node.show-original GlobalNoteTA_o_node {
+        display: inline;
+      }
+      GlobalNoteTA_w_node.show-original GlobalNoteTA_c_node {
+        display: none;
       }
     </style>
     <div>
       <label><input type="checkbox" id="enable-conversion"> Enable Conversion</label>
+    </div>
+    <div>
+      <label><input type="checkbox" id="show-original"> Show Original</label>
+    </div>
+    <div>
+      <label><input type="checkbox" id="enable-highlight"> Enable Debug Highlight</label>
     </div>
     <div>
       <label>Target Variant:</label>
@@ -138,6 +172,32 @@ function createFloatingMenu() {
     conversionEnabled = e.target.checked;
     chrome.storage.local.set({ conversionEnabled });
     if (conversionEnabled) convertPage();
+  });
+
+  document.getElementById('show-original').addEventListener('change', (e) => {
+    showOriginal = e.target.checked;
+    chrome.storage.local.set({ showOriginal });
+
+    document.querySelectorAll("GlobalNoteTA_w_node").forEach(el => {
+      if (showOriginal) {
+        el.classList.add("show-original");
+      } else {
+        el.classList.remove("show-original");
+      } 
+    });
+  });
+
+  document.getElementById('enable-highlight').addEventListener('change', (e) => {
+    highlightEnabled = e.target.checked;
+    chrome.storage.local.set({ highlightEnabled });
+
+    document.querySelectorAll("GlobalNoteTA_phrase").forEach(el => {
+      if (highlightEnabled) {
+        el.classList.add("show-highlight");
+      } else {
+        el.classList.remove("show-highlight");
+      } 
+    });
   });
 
   document.getElementById('variant-select').addEventListener('change', (e) => {
