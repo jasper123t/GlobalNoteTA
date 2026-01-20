@@ -2,7 +2,7 @@
 // Handles text conversion and floating menu
 
 let tables = {};
-let currentVariant = 'zh-tw'; // Default to traditional
+let currentVariant = 'zh-hk'; // Default to Hong Kong variant
 let conversionEnabled = false;
 let showOriginal = false;
 let highlightEnabled = false;
@@ -94,7 +94,7 @@ function convertPage() {
 
     node.parentElement.replaceChild(w_node, node);
 
-    console.log(node.parentElement);
+    // console.log(node.parentElement);
   });
 
   console.log(`Converted ${nodesConverted} text nodes.`);
@@ -209,11 +209,20 @@ function createFloatingMenu() {
   document.getElementById('convert-now').addEventListener('click', convertPage);
 
   // Load settings
-  chrome.storage.local.get(['conversionEnabled', 'currentVariant'], (result) => {
+  chrome.storage.local.get([ 
+    'currentVariant',
+    'conversionEnabled',
+    'showOriginal',
+    'highlightEnabled'
+  ], (result) => {
+    currentVariant = result.currentVariant || 'zh-hk';
     conversionEnabled = result.conversionEnabled || false;
-    currentVariant = result.currentVariant || 'zh-tw';
-    document.getElementById('enable-conversion').checked = conversionEnabled;
+    showOriginal = result.showOriginal || false;
+    highlightEnabled = result.highlightEnabled || false;
     document.getElementById('variant-select').value = currentVariant;
+    document.getElementById('enable-conversion').checked = conversionEnabled;
+    document.getElementById('show-original').checked = showOriginal;
+    document.getElementById('enable-highlight').checked = highlightEnabled;
   });
 }
 
