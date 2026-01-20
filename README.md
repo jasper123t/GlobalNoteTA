@@ -38,12 +38,15 @@ Open-source, align with Wikipedia's terms.
 - already used 48% of free tier credit, will start using non vscode ai to vibe
 
 ### todo
-- clean up ai mess (s2t should be hant, t2s should be hans...)
-- performance issue
-- floating menu
-- progress bar
-- dark mode
-- toggle debug highlight
-- allow quick un-convert
-- noteTA support
-- custom rules support
+- [ ] clean up ai mess
+    - [ ] tables loading slowly
+    - [ ] table names (s2t, t2s)
+- [ ] performance issue
+- [ ] floating menu
+    - [ ] progress bar
+    - [ ] dark mode
+    - [x] toggle debug highlight
+    - [x] allow quick un-convert
+    - [ ] draggble
+- [ ] noteTA support
+- [ ] custom rules support
