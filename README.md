@@ -38,6 +38,8 @@ Open-source, align with Wikipedia's terms.
 - already used 48% of free tier credit, will start using non vscode ai to vibe
 
 ### todo
+- [ ] bugs
+    - [ ] css for debug highlight and show original might not be loaded 
 - [ ] clean up ai mess
     - [ ] tables loading slowly
     - [ ] table names (s2t, t2s)
