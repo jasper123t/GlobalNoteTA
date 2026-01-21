@@ -125,14 +125,11 @@ function createFloatingMenu() {
       }
       GlobalNoteTA_phrase:nth-child(2n) {
         background-color: var(--debug-color0, none);
+        color: var(--debug-text);
       }
       GlobalNoteTA_phrase:nth-child(2n+1) {
         background-color: var(--debug-color1, none);
-      }
-      @media (prefers-color-scheme: dark) {
-        GlobalNoteTA_phrase {
-          color: black; /* switch text to black for contrast */
-        }
+        color: var(--debug-text);
       }
       globalnoteta_o_node {
         display: var(--original-display, none);
@@ -226,10 +223,12 @@ function loadPref() {
   if (highlightEnabled) {
     document.documentElement.style.setProperty('--debug-color0', 'orange');
     document.documentElement.style.setProperty('--debug-color1', 'yellow');
+    document.documentElement.style.setProperty('--debug-text', 'black'); // dark mode compatibility
   } else {
-    document.documentElement.style.setProperty('--debug-color0', 'none');
-    document.documentElement.style.setProperty('--debug-color1', 'none');
-  } 
+    document.documentElement.style.setProperty('--debug-color0', '');
+    document.documentElement.style.setProperty('--debug-color1', '');
+    document.documentElement.style.setProperty('--debug-text', '');
+  }
 }
 
 // Initialize on page load

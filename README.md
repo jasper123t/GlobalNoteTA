@@ -47,7 +47,7 @@ Open-source, align with Wikipedia's terms.
 - [ ] performance issue
 - [ ] floating menu
     - [ ] progress bar
-    - [ ] dark mode
+    - [x] dark mode
     - [x] toggle debug highlight
     - [x] allow quick un-convert
     - [ ] draggble
