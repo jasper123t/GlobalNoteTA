@@ -125,6 +125,19 @@ function createFloatingMenu() {
         padding: 5px 10px;
         cursor: pointer;
       }
+      #globalnoteta-menu close-btn {
+        position: absolute;
+        top: 0px;
+        right: 0px;
+        background: none;
+        border: none;
+        padding: 0px;
+        line-height: 18px;
+        font-size: 32px;
+        font-weight: bold;
+        color: #808080;
+        cursor: pointer;
+      }
       GlobalNoteTA_phrase:nth-child(2n) {
         background-color: var(--debug-color0, none);
         color: var(--debug-text);
@@ -140,6 +153,7 @@ function createFloatingMenu() {
         display: var(--converted-display, inline);
       }
     </style>
+    <close-btn id="close-btn"">×</close-btn>
     <div>
       <label><input type="checkbox" id="enable-conversion"> Enable Conversion</label>
     </div>
@@ -189,6 +203,10 @@ function createFloatingMenu() {
     if (conversionEnabled) convertPage();
   });
 
+  function closeMenu() { document.getElementById("globalnoteta-menu").style.display = "none"; }
+
+  document.getElementById('close-btn').addEventListener('click', closeMenu);
+
   document.getElementById('convert-now').addEventListener('click', convertPage);
 
   // Load settings
@@ -236,6 +254,18 @@ function loadPref() {
 // Initialize on page load
 console.log('GlobalNoteTA extension started running on page:', window.location.href);
 createFloatingMenu();
+
+// Listen for messages from popup
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === 'updateSettings') {
+    conversionEnabled = request.conversionEnabled;
+    // currentVariant = request.currentVariant; // if needed
+    chrome.storage.local.set({ conversionEnabled });
+    if (conversionEnabled) convertPage();
+    sendResponse({ success: true });
+  }
+});
+
 // Observe DOM changes for dynamic content
 const observer = new MutationObserver(() => {
   if (conversionEnabled) convertPage();
