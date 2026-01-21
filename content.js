@@ -153,7 +153,7 @@ function createFloatingMenu() {
         display: var(--converted-display, inline);
       }
     </style>
-    <close-btn id="close-btn"">×</close-btn>
+    <close-btn>×</close-btn>
     <div>
       <label><input type="checkbox" id="enable-conversion"> Enable Conversion</label>
     </div>
@@ -205,7 +205,7 @@ function createFloatingMenu() {
 
   function closeMenu() { document.getElementById("globalnoteta-menu").style.display = "none"; }
 
-  document.getElementById('close-btn').addEventListener('click', closeMenu);
+  document.querySelector('close-btn').addEventListener('click', closeMenu);
 
   document.getElementById('convert-now').addEventListener('click', convertPage);
 
