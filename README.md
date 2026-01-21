@@ -50,6 +50,6 @@ Open-source, align with Wikipedia's terms.
     - [x] dark mode
     - [x] toggle debug highlight
     - [x] allow quick un-convert
-    - <del>[ ] draggble</del>
+    - [ ] <del>draggble</del>
 - [ ] noteTA support
 - [ ] custom rules support
