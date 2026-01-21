@@ -107,16 +107,16 @@ function createFloatingMenu() {
   menu.innerHTML = `
     <style>
       #globalnoteta-menu {
+        user-select: none;
         position: fixed;
         bottom: 10px;
         left: 10px;
-        background: white;
-        border: 1px solid #ccc;
+        border-radius: 10px;
+        border: 5px solid #177860;
         padding: 10px;
         z-index: 10000;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        font-family: Arial, sans-serif;
         font-size: 12px;
+        font-family: sans-serif;
       }
       #globalnoteta-menu button {
         margin: 2px;
@@ -128,6 +128,11 @@ function createFloatingMenu() {
       }
       GlobalNoteTA_phrase:nth-child(2n+1) {
         background-color: var(--debug-color1, none);
+      }
+      @media (prefers-color-scheme: dark) {
+        GlobalNoteTA_phrase {
+          color: black; /* switch text to black for contrast */
+        }
       }
       globalnoteta_o_node {
         display: var(--original-display, none);
