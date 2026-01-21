@@ -264,6 +264,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (conversionEnabled) convertPage();
     sendResponse({ success: true });
   }
+  if (request.action === 'openMenu') {
+    // Open menu logic here
+    document.getElementById("globalnoteta-menu").style.display = "block";
+  }
 });
 
 // Observe DOM changes for dynamic content
