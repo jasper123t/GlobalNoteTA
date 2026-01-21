@@ -111,10 +111,12 @@ function createFloatingMenu() {
         position: fixed;
         bottom: 10px;
         left: 10px;
+        background-color: Canvas;
+        color: CanvasText;
         border-radius: 10px;
         border: 5px solid #177860;
         padding: 10px;
-        z-index: 10000;
+        z-index: 1000;
         font-size: 12px;
         font-family: sans-serif;
       }
