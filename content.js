@@ -210,7 +210,7 @@ function createFloatingMenu() {
   document.getElementById('convert-now').addEventListener('click', convertPage);
 
   // Load settings
-  chrome.storage.local.get([ 
+  chrome.storage.local.get([
     'currentVariant',
     'conversionEnabled',
     'showOriginal',
