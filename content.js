@@ -47,9 +47,9 @@ function convertText(text, fromVariant, toVariant) {
       i++;
     }
   }
-  if (conversions > 0) {
-    console.log(`Converted ${conversions} phrases in text: "${text.substring(0, 30)}..." to "${result.substring(0, 30)}..."`);
-  }
+  // if (conversions > 0) {
+  //   console.log(`Converted ${conversions} phrases in text: "${text.substring(0, 30)}..." to "${result.substring(0, 30)}..."`);
+  // }
   return result;
 }
 
@@ -57,9 +57,11 @@ function convertText(text, fromVariant, toVariant) {
 function convertPage() {
   if (!conversionEnabled) return;
   console.log('Converting page to variant:', currentVariant);
+  const start = performance.now();
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
   let node;
   let nodesConverted = 0;
+  let charsHandled = 0;
   const nodesToUpdate = [];
 
   while (node = walker.nextNode()) {
@@ -76,6 +78,7 @@ function convertPage() {
       if (converted !== original) {
         nodesToUpdate.push({ node, converted });
         nodesConverted++;
+        charsHandled += original.length;
       }
     }
   }
@@ -97,7 +100,9 @@ function convertPage() {
     // console.log(node.parentElement);
   });
 
-  console.log(`Converted ${nodesConverted} text nodes.`);
+  const end = performance.now();
+  const duration = end - start; // milliseconds
+  console.log(`Converted ${nodesConverted.toString().padStart(5, " ")} nodes with ${charsHandled.toString().padStart(7, " ")} chars in ${duration.toFixed(2).toString().padStart(7, " ")} ms.`);
 }
 
 // Create floating menu
