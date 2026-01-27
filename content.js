@@ -1,60 +1,159 @@
-// Content script for GlobalNoteTA
-// Handles text conversion and floating menu
+async function init() {
+  await loadTabl();
 
-let tables = {};
-let currentVariant = 'zh-hk'; // Default to Hong Kong variant
-let conversionEnabled = false;
-let showOriginal = false;
-let highlightEnabled = false;
+  loadPref();
 
-// Load tables from storage
-chrome.runtime.sendMessage({ action: 'getTables' }, (response) => {
-  tables = response.tables || {};
-  console.log('Tables loaded in content script.');
-  console.log('Available variants:', Object.keys(tables));
-  for (const variant in tables) {
-    console.log(`Tables for ${variant}: ${Object.keys(tables[variant]).length} entries`);
-  }
-});
+  await readMenu();
 
-// Function to convert text
-function convertText(text, fromVariant, toVariant) {
-  if (!tables[toVariant]) {
-    console.log('No table for variant:', toVariant);
-    return text;
-  }
-  const table = tables[toVariant];
-  let result = '';
-  let i = 0;
-  let conversions = 0;
-  while (i < text.length) {
-    let matched = false;
-    // Try longest match first (up to 10 chars)
-    for (let len = Math.min(10, text.length - i); len > 0; len--) {
-      const phrase = text.substr(i, len);
-      if (table[phrase]) {
-        const replacement = Array.isArray(table[phrase]) ? table[phrase][0] : table[phrase];
-        // Wrap replacement in a span with highlight class
-        result += `<GlobalNoteTA_phrase>${replacement}</GlobalNoteTA_phrase>`;
-        i += len;
-        matched = true;
-        conversions++;
-        break;
-      }
-    }
-    if (!matched) {
-      result += text[i];
-      i++;
-    }
-  }
-  // if (conversions > 0) {
-  //   console.log(`Converted ${conversions} phrases in text: "${text.substring(0, 30)}..." to "${result.substring(0, 30)}..."`);
-  // }
-  return result;
+  console.log(new Date().toISOString());
+  console.log('Ready');
+
+  if (conversionEnabled) convPage();
+  new MutationObserver(() => {
+    if (conversionEnabled) convPage();
+  })
+    .observe(document.body, { childList: true, subtree: true });
 }
 
-// Traverse and convert DOM text nodes
-function convertPage() {
+function loadTabl() {
+  return new Promise((resolve, reject) => {
+    chrome.runtime.sendMessage({ action: 'getTables' }, (response) => {
+      if (chrome.runtime.lastError) {
+        reject(chrome.runtime.lastError);
+        return;
+      }
+
+      tables = response?.tables || {};
+      console.log('Tables loaded');
+
+      resolve(tables);
+    });
+  });
+}
+
+
+function loadPref() {
+  chrome.storage.local.get([
+    'currentVariant',
+    'conversionEnabled',
+    'showOriginal',
+    'highlightEnabled'
+  ], (result) => {
+    currentVariant = result.currentVariant || 'zh-hk';
+    conversionEnabled = result.conversionEnabled || false;
+    showOriginal = result.showOriginal || false;
+    highlightEnabled = result.highlightEnabled || false;
+  });
+}
+
+async function readMenu() {
+  await loadMenu();
+  loadStyl();
+  readPopup();
+
+  const menuEnableConversion = document.getElementById('enable-conversion');
+  menuEnableConversion.checked = conversionEnabled;
+  menuEnableConversion.addEventListener('change', (e) => {
+    conversionEnabled = e.target.checked;
+    chrome.storage.local.set({ conversionEnabled });
+    if (conversionEnabled) convPage();
+  });
+
+  const menuShowOriginal = document.getElementById('show-original');
+  menuShowOriginal.checked = showOriginal;
+  menuShowOriginal.addEventListener('change', (e) => {
+    showOriginal = e.target.checked;
+    chrome.storage.local.set({ showOriginal });
+    loadStyl();
+  });
+
+  const menuEnableHighlight = document.getElementById('enable-highlight');
+  menuEnableHighlight.checked = highlightEnabled;
+  menuEnableHighlight.addEventListener('change', (e) => {
+    highlightEnabled = e.target.checked;
+    chrome.storage.local.set({ highlightEnabled });
+    loadStyl();
+  });
+
+  const menuVarientSelect = document.getElementById('variant-select');
+  menuVarientSelect.value = currentVariant;
+  menuVarientSelect.addEventListener('change', (e) => {
+    currentVariant = e.target.value;
+    chrome.storage.local.set({ currentVariant });
+    if (conversionEnabled) convPage();
+  });
+
+  const closeBtn = document.querySelector('close-btn');
+  closeBtn.addEventListener('click', () => {
+    document.getElementById("globalnoteta-menu").style.display = "none";
+  });
+
+  document.getElementById('convert-now').addEventListener('click', () => {
+    convPage()
+  });
+}
+
+function loadMenu() {
+  return new Promise((resolve, reject) => {
+    const url = chrome.runtime.getURL("menu.html");
+
+    fetch(chrome.runtime.getURL("menu.html"))
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Failed to load menu.html: ${response.status}`);
+        }
+        return response.text();
+      })
+      .then(html => {
+        const menu = document.createElement("div");
+        menu.id = "globalnoteta-menu";
+        menu.innerHTML = html;
+        document.body.appendChild(menu);
+        console.log('Menu loaded')
+        resolve(menu);
+      })
+      .catch(err => reject(err));
+  });
+}
+
+function loadStyl() {
+  docStyle = document.documentElement.style;
+  if (showOriginal) {
+    docStyle.setProperty('--original-display', 'inline');
+    docStyle.setProperty('--converted-display', 'none');
+  } else {
+    docStyle.setProperty('--original-display', 'none');
+    docStyle.setProperty('--converted-display', 'inline');
+  }
+
+  if (highlightEnabled) {
+    docStyle.setProperty('--debug-color0', 'orange');
+    docStyle.setProperty('--debug-color1', 'yellow');
+    docStyle.setProperty('--debug-text', 'black');
+  } else {
+    docStyle.setProperty('--debug-color0', '');
+    docStyle.setProperty('--debug-color1', '');
+    docStyle.setProperty('--debug-text', '');
+  }
+}
+
+function readPopup() {
+  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === 'updateSettings') {
+      conversionEnabled = request.conversionEnabled;
+      document.getElementById('enable-conversion').checked = conversionEnabled;
+      // currentVariant = request.currentVariant; // if needed
+      chrome.storage.local.set({ conversionEnabled });
+      if (conversionEnabled) convPage();
+      sendResponse({ success: true });
+    }
+    if (request.action === 'openMenu') {
+      document.getElementById("globalnoteta-menu").style.display = "block";
+    }
+  });
+}
+
+function convPage() { // todo: cleanup
   if (!conversionEnabled) return;
   console.log('Converting page to variant:', currentVariant);
   const start = performance.now();
@@ -63,6 +162,7 @@ function convertPage() {
   let nodesConverted = 0;
   let charsHandled = 0;
   const nodesToUpdate = [];
+  const table = tables[currentVariant];
 
   while (node = walker.nextNode()) {
     if (
@@ -74,7 +174,7 @@ function convertPage() {
       && node.parentElement.tagName !== 'GLOBALNOTETA_PHRASE'
     ) {
       const original = node.textContent;
-      const converted = convertText(original, 'auto', currentVariant);
+      const converted = convText(original, table);
       if (converted !== original) {
         nodesToUpdate.push({ node, converted });
         nodesConverted++;
@@ -101,182 +201,44 @@ function convertPage() {
   });
 
   const end = performance.now();
-  const duration = end - start; // milliseconds
+  const duration = end - start;
   console.log(`Converted ${nodesConverted.toString().padStart(5, " ")} nodes with ${charsHandled.toString().padStart(7, " ")} chars in ${duration.toFixed(2).toString().padStart(7, " ")} ms.`);
 }
 
-// Create floating menu
-function createFloatingMenu() {
-  const menu = document.createElement('div');
-  menu.id = 'globalnoteta-menu';
-  menu.innerHTML = `
-    <style>
-      #globalnoteta-menu {
-        user-select: none;
-        position: fixed;
-        bottom: 10px;
-        left: 10px;
-        background-color: Canvas;
-        color: CanvasText;
-        border-radius: 10px;
-        border: 5px solid #177860;
-        padding: 10px;
-        z-index: 1000;
-        font-size: 12px;
-        font-family: sans-serif;
-      }
-      #globalnoteta-menu button {
-        margin: 2px;
-        padding: 5px 10px;
-        cursor: pointer;
-      }
-      #globalnoteta-menu close-btn {
-        position: absolute;
-        top: 0px;
-        right: 0px;
-        background: none;
-        border: none;
-        padding: 0px;
-        line-height: 18px;
-        font-size: 32px;
-        font-weight: bold;
-        color: #808080;
-        cursor: pointer;
-      }
-      GlobalNoteTA_phrase:nth-child(2n) {
-        background-color: var(--debug-color0, none);
-        color: var(--debug-text);
-      }
-      GlobalNoteTA_phrase:nth-child(2n+1) {
-        background-color: var(--debug-color1, none);
-        color: var(--debug-text);
-      }
-      globalnoteta_o_node {
-        display: var(--original-display, none);
-      }
-      globalnoteta_c_node {
-        display: var(--converted-display, inline);
-      }
-    </style>
-    <close-btn>×</close-btn>
-    <div>
-      <label><input type="checkbox" id="enable-conversion"> Enable Conversion</label>
-    </div>
-    <div>
-      <label><input type="checkbox" id="show-original"> Show Original</label>
-    </div>
-    <div>
-      <label><input type="checkbox" id="enable-highlight"> Enable Debug Highlight</label>
-    </div>
-    <div>
-      <label>Target Variant:</label>
-      <select id="variant-select">
-        <option value="zh-cn">Simplified (China)</option>
-        <option value="zh-tw" selected>Traditional (Taiwan)</option>
-        <option value="zh-hk">Traditional (Hong Kong)</option>
-        <option value="zh-sg">Simplified (Singapore)</option>
-        <option value="zh-my">Simplified (Malaysia)</option>
-        <option value="zh-mo">Traditional (Macau)</option>
-      </select>
-    </div>
-    <button id="convert-now">Convert Now</button>
-  `;
-  document.body.appendChild(menu);
-
-  // Event listeners
-  document.getElementById('enable-conversion').addEventListener('change', (e) => {
-    conversionEnabled = e.target.checked;
-    chrome.storage.local.set({ conversionEnabled });
-    if (conversionEnabled) convertPage();
-  });
-
-  document.getElementById('show-original').addEventListener('change', (e) => {
-    showOriginal = e.target.checked;
-    chrome.storage.local.set({ showOriginal });
-    loadPref();
-  });
-
-  document.getElementById('enable-highlight').addEventListener('change', (e) => {
-    highlightEnabled = e.target.checked;
-    chrome.storage.local.set({ highlightEnabled });
-    loadPref();
-  });
-
-  document.getElementById('variant-select').addEventListener('change', (e) => {
-    currentVariant = e.target.value;
-    chrome.storage.local.set({ currentVariant });
-    if (conversionEnabled) convertPage();
-  });
-
-  function closeMenu() { document.getElementById("globalnoteta-menu").style.display = "none"; }
-
-  document.querySelector('close-btn').addEventListener('click', closeMenu);
-
-  document.getElementById('convert-now').addEventListener('click', convertPage);
-
-  // Load settings
-  chrome.storage.local.get([
-    'currentVariant',
-    'conversionEnabled',
-    'showOriginal',
-    'highlightEnabled'
-  ], (result) => {
-    currentVariant = result.currentVariant || 'zh-hk';
-    conversionEnabled = result.conversionEnabled || false;
-    showOriginal = result.showOriginal || false;
-    highlightEnabled = result.highlightEnabled || false;
-    document.getElementById('variant-select').value = currentVariant;
-    document.getElementById('enable-conversion').checked = conversionEnabled;
-    document.getElementById('show-original').checked = showOriginal;
-    document.getElementById('enable-highlight').checked = highlightEnabled;
-    loadPref();
-  });
+function convNode() { // todo: cleanup
+    convText();
 }
 
-// load css
-function loadPref() {
-  // Show original
-  if (showOriginal) {
-    document.documentElement.style.setProperty('--original-display', 'inline');
-    document.documentElement.style.setProperty('--converted-display', 'none');
-  } else {
-    document.documentElement.style.setProperty('--original-display', 'none');
-    document.documentElement.style.setProperty('--converted-display', 'inline');
+function convText(text, table) {
+  let result = '';
+  let i = 0;
+  let conversions = 0;
+  while (i < text.length) {  // todo: rewrite and use strstr
+    let matched = false;
+    // Try longest match first (up to 10 chars)
+    for (let len = Math.min(10, text.length - i); len > 0; len--) {
+      const phrase = text.substr(i, len);
+      if (table[phrase]) {
+        const replacement = Array.isArray(table[phrase]) ? table[phrase][0] : table[phrase];
+        // Wrap replacement in a span with highlight class
+        result += `<GlobalNoteTA_phrase>${replacement}</GlobalNoteTA_phrase>`;
+        i += len;
+        matched = true;
+        conversions++;
+        break;
+      }
+    }
+    if (!matched) {
+      result += text[i];
+      i++;
+    }
   }
-
-  // Debug highlight
-  if (highlightEnabled) {
-    document.documentElement.style.setProperty('--debug-color0', 'orange');
-    document.documentElement.style.setProperty('--debug-color1', 'yellow');
-    document.documentElement.style.setProperty('--debug-text', 'black'); // dark mode compatibility
-  } else {
-    document.documentElement.style.setProperty('--debug-color0', '');
-    document.documentElement.style.setProperty('--debug-color1', '');
-    document.documentElement.style.setProperty('--debug-text', '');
-  }
+  // if (conversions > 0) {
+  //   console.log(`Converted ${conversions} phrases in text: "${text.substring(0, 30)}..." to "${result.substring(0, 30)}..."`);
+  // }
+  return result;
 }
 
-// Initialize on page load
+console.log(new Date().toISOString());
 console.log('GlobalNoteTA extension started running on page:', window.location.href);
-createFloatingMenu();
-
-// Listen for messages from popup
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === 'updateSettings') {
-    conversionEnabled = request.conversionEnabled;
-    // currentVariant = request.currentVariant; // if needed
-    chrome.storage.local.set({ conversionEnabled });
-    if (conversionEnabled) convertPage();
-    sendResponse({ success: true });
-  }
-  if (request.action === 'openMenu') {
-    // Open menu logic here
-    document.getElementById("globalnoteta-menu").style.display = "block";
-  }
-});
-
-// Observe DOM changes for dynamic content
-const observer = new MutationObserver(() => {
-  if (conversionEnabled) convertPage();
-});
-observer.observe(document.body, { childList: true, subtree: true });
+init();
