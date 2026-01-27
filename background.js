@@ -125,25 +125,39 @@ async function loadTables() {
   for (const variant of variants) {
     const wikiTable = await fetchTable(variant);
     let base = {};
-    if (variant === 'zh-cn') {
-      base = { ...globalTables.hans, ...globalTables.cn };
-    } else if (variant === 'zh-tw') {
-      base = { ...globalTables.hant, ...globalTables.tw };
-    } else if (variant === 'zh-hk') {
-      base = { ...globalTables.hant, ...globalTables.hk };
-    } else if (variant === 'zh-sg') {
-      base = { ...globalTables.hans };
-    } else if (variant === 'zh-my') {
-      base = { ...globalTables.hans };
-    } else if (variant === 'zh-mo') {
-      base = { ...globalTables.hant };
+    switch (variant) {
+      case 'zh-cn':
+        base = { ...globalTables.hans, ...globalTables.cn };
+        break;
+
+      case 'zh-tw':
+        base = { ...globalTables.hant, ...globalTables.tw };
+        break;
+
+      case 'zh-hk':
+        base = { ...globalTables.hant, ...globalTables.hk };
+        break;
+
+      case 'zh-sg':
+      case 'zh-my':
+        base = { ...globalTables.hans };
+        break;
+
+      case 'zh-mo':
+        base = { ...globalTables.hant };
+        break;
+
+      default:
+        console.warn('Unknown variant:', variant);
+        break;
     }
+
     tables[variant] = { ...base, ...wikiTable };
     console.log(`Merged table for ${variant}: ${Object.keys(tables[variant]).length} mappings`);
   }
 
-  tables['s2t'] = globalTables.hant || {};
-  tables['t2s'] = globalTables.hans || {};
+  tables['hant'] = globalTables.hant || {};
+  tables['hans'] = globalTables.hans || {};
   chrome.storage.local.set({ tables, lastUpdated: Date.now() });
   console.log('Tables loaded and cached.');
 }
