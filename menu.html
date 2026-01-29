@@ -1,0 +1,70 @@
+<style>
+    #globalnoteta-menu {
+    user-select: none;
+    position: fixed;
+    bottom: 10px;
+    left: 10px;
+    background-color: Canvas;
+    color: CanvasText;
+    border-radius: 10px;
+    border: 5px solid #177860;
+    padding: 10px;
+    z-index: 1000;
+    font-size: 12px;
+    font-family: sans-serif;
+    }
+    #globalnoteta-menu button {
+    margin: 2px;
+    padding: 5px 10px;
+    cursor: pointer;
+    }
+    #globalnoteta-menu close-btn {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    background: none;
+    border: none;
+    padding: 0px;
+    line-height: 18px;
+    font-size: 32px;
+    font-weight: bold;
+    color: #808080;
+    cursor: pointer;
+    }
+    GlobalNoteTA_phrase:nth-child(2n) {
+    background-color: var(--debug-color0, none);
+    color: var(--debug-text);
+    }
+    GlobalNoteTA_phrase:nth-child(2n+1) {
+    background-color: var(--debug-color1, none);
+    color: var(--debug-text);
+    }
+    globalnoteta_o_node {
+    display: var(--original-display, none);
+    }
+    globalnoteta_c_node {
+    display: var(--converted-display, inline);
+    }
+</style>
+<close-btn>×</close-btn>
+<div>
+    <label><input type="checkbox" id="enable-conversion"> Enable Conversion</label>
+</div>
+<div>
+    <label><input type="checkbox" id="show-original"> Show Original</label>
+</div>
+<div>
+    <label><input type="checkbox" id="enable-highlight"> Enable Debug Highlight</label>
+</div>
+<div>
+    <label>Target Variant:</label>
+    <select id="variant-select">
+    <option value="zh-cn">Simplified (China)</option>
+    <option value="zh-tw" selected>Traditional (Taiwan)</option>
+    <option value="zh-hk">Traditional (Hong Kong)</option>
+    <option value="zh-sg">Simplified (Singapore)</option>
+    <option value="zh-my">Simplified (Malaysia)</option>
+    <option value="zh-mo">Traditional (Macau)</option>
+    </select>
+</div>
+<button id="convert-now">Convert Now</button>
