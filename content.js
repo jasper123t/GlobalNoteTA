@@ -157,12 +157,14 @@ function convPage() { // todo: cleanup
   if (!conversionEnabled) return;
   console.log('Converting page to variant:', currentVariant);
   const start = performance.now();
-  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+  const table = tables[currentVariant];
+  const keys = Object.keys(table);
+  const longestKey = keys.reduce((a, b) => (b.length > a.length ? b : a), "");
   let node;
   let nodesConverted = 0;
   let charsHandled = 0;
   const nodesToUpdate = [];
-  const table = tables[currentVariant];
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
 
   while (node = walker.nextNode()) {
     if (
@@ -174,7 +176,7 @@ function convPage() { // todo: cleanup
       && node.parentElement.tagName !== 'GLOBALNOTETA_PHRASE'
     ) {
       const original = node.textContent;
-      const converted = convText(original, table);
+      const converted = convText(original, table, longestKey.length);
       if (converted !== original) {
         nodesToUpdate.push({ node, converted });
         nodesConverted++;
@@ -202,24 +204,27 @@ function convPage() { // todo: cleanup
 
   const end = performance.now();
   const duration = end - start;
-  console.log(`Converted ${nodesConverted.toString().padStart(5, " ")} nodes with ${charsHandled.toString().padStart(7, " ")} chars in ${duration.toFixed(2).toString().padStart(7, " ")} ms.`);
+  console.log(`Converted `+
+  nodesConverted.toString().padStart(5, " ")+` nodes with `+
+  charsHandled.toString().padStart(7, " ")+` chars in `+
+  duration.toFixed(2).toString().padStart(7, " ")+` ms.`);
 }
 
 function convNode() { // todo: cleanup
     convText();
 }
 
-function convText(text, table) {
+function convText(text, table, maxLength) {
   let result = '';
-  let i = 0;
   let conversions = 0;
+  let i = 0;
   while (i < text.length) {  // todo: rewrite and use strstr
     let matched = false;
-    // Try longest match first (up to 10 chars)
-    for (let len = Math.min(10, text.length - i); len > 0; len--) {
+    // Try longest match first (up to longestKey.length chars)
+    for (let len = Math.min(maxLength, text.length - i); len > 0; len--) {
       const phrase = text.substr(i, len);
       if (table[phrase]) {
-        const replacement = Array.isArray(table[phrase]) ? table[phrase][0] : table[phrase];
+        const replacement = Array.isArray(table[phrase]) ? table[phrase][0] : table[phrase]; // isArray should always be false, will confirm later
         // Wrap replacement in a span with highlight class
         result += `<GlobalNoteTA_phrase>${replacement}</GlobalNoteTA_phrase>`;
         i += len;
