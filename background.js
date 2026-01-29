@@ -106,6 +106,7 @@ function parseTable(content, variant) {
           targetPart = targetPart.split('//')[0].replace(/;$/, '').trim();
           const targets = targetPart.split(';').map(t => t.trim().replace(/\[\[|\]\]/g, '')).filter(t => t);
           if (targets.length > 0) {
+            if (targets.length > 1) console.log(targets); // shouldnt happen, just incase
             table[source] = targets.length === 1 ? targets[0] : targets;
           }
         }
