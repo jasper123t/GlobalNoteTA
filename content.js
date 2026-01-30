@@ -118,12 +118,18 @@ function loadMenu() {
 
 function loadStyl() {
   docStyle = document.documentElement.style;
+  const vs = ['hans', 'hant', 'cn', 'tw', 'hk', 'my', 'sg', 'mo']
   if (showOriginal) {
-    docStyle.setProperty('--original-display', 'inline');
-    docStyle.setProperty('--converted-display', 'none');
+    docStyle.setProperty('--show-org', 'inline');
+    for (v of vs) {
+      docStyle.setProperty(`--show-${v}`, 'none');
+    }
   } else {
-    docStyle.setProperty('--original-display', 'none');
-    docStyle.setProperty('--converted-display', 'inline');
+    docStyle.setProperty('--show-org', 'none');
+    for (v of vs) {
+      docStyle.setProperty(`--show-${v}`, 'none');
+    }
+    docStyle.setProperty(`--show-${currentVariant.split("-")[1]}`, 'inline');
   }
 
   if (highlightEnabled) {
@@ -164,17 +170,60 @@ function convPage() { // todo: cleanup
   let nodesConverted = 0;
   let charsHandled = 0;
   const nodesToUpdate = [];
-  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+  const skipList = [
+    'SCRIPT',
+    'STYLE',
+    'GLOBALNOTETA_O_NODE',
+    'GLOBALNOTETA_PHRASE',
+    'GLOBALNOTETA_C_NODE_ZH-CN',
+    'GLOBALNOTETA_C_NODE_ZH-TW',
+    'GLOBALNOTETA_C_NODE_ZH-HK',
+    'GLOBALNOTETA_C_NODE_ZH-MY',
+    'GLOBALNOTETA_C_NODE_ZH-SG',
+    'GLOBALNOTETA_C_NODE_ZH-MO',
+    'GLOBALNOTETA_C_NODE_ZH-HANS',
+    'GLOBALNOTETA_C_NODE_ZH-HANT'
+  ];
+  const walker = document.createTreeWalker(
+    document.body,
+    NodeFilter.SHOW_TEXT,
+    { 
+      acceptNode(node) { 
+        if (skipList.includes(node.parentNode.nodeName)) { 
+          return NodeFilter.FILTER_REJECT;
+        }
+        if (!node.textContent.trim()) {
+          return NodeFilter.FILTER_REJECT;
+        }
+        let ancestor = node.parentNode; // skip globalnoteta menu
+        while (ancestor) {
+          if (ancestor.id === "globalnoteta-menu") {
+            return NodeFilter.FILTER_REJECT; // skip this node and its subtree
+          }
+          ancestor = ancestor.parentNode;
+        }
+        // console.log("'"+node.textContent+"'");
+        // console.log(node.parentElement.nodeName);
+        // console.log(node.parentNode.nodeName);
+        return NodeFilter.FILTER_ACCEPT; 
+      }
+    },
+    false
+  );
 
   while (node = walker.nextNode()) {
-    if (
-      node.parentElement
-      && node.parentElement.tagName !== 'SCRIPT'
-      && node.parentElement.tagName !== 'STYLE'
-      && node.parentElement.tagName !== 'GLOBALNOTETA_O_NODE'
-      && node.parentElement.tagName !== 'GLOBALNOTETA_C_NODE'
-      && node.parentElement.tagName !== 'GLOBALNOTETA_PHRASE'
-    ) {
+      // console.log(node.parentElement.tagName);
+      // console.log(node.tagName);
+      // console.log(node.textContent);
+      // console.log("");
+    // if (
+    //   node.parentElement
+    //   && node.parentElement.tagName !== 'SCRIPT'
+    //   && node.parentElement.tagName !== 'STYLE'
+    //   && node.parentElement.tagName !== 'GLOBALNOTETA_O_NODE'
+    //   && node.parentElement.tagName !== `GLOBALNOTETA_C_NODE_${currentVariant}`
+    //   && node.parentElement.tagName !== 'GLOBALNOTETA_PHRASE'
+    // ) {
       const original = node.textContent;
       const converted = convText(original, table, longestKey.length);
       if (converted !== original) {
@@ -182,7 +231,7 @@ function convPage() { // todo: cleanup
         nodesConverted++;
         charsHandled += original.length;
       }
-    }
+    // }
   }
 
   // Replace text nodes with HTML spans
@@ -193,7 +242,7 @@ function convPage() { // todo: cleanup
     o_node.textContent = node.textContent;
     w_node.appendChild(o_node);
 
-    const c_node = document.createElement('GlobalNoteTA_c_node');
+    const c_node = document.createElement(`GlobalNoteTA_c_node_${currentVariant}`);
     c_node.innerHTML = converted;
     w_node.appendChild(c_node);
 
