@@ -162,7 +162,7 @@ function readPopup() {
 
 function convPage() { // todo: cleanup
   if (!conversionEnabled) return;
-  console.log('Converting page to variant:', currentVariant);
+  // console.log('Converting page to variant:', currentVariant);
   const start = performance.now();
   
   const skipList = [
@@ -238,19 +238,24 @@ function convNode(walker) { // todo: cleanup
 
   while (node = walker.nextNode()) {
     if (node.nodeName === 'GLOBALNOTETA_W_NODE') {
-      original = node.querySelector("GlobalNoteTA_o_node").textContent;
+      if (node.querySelector(`GlobalNoteTA_c_node_${currentVariant}`)) {  // converted to this var
+        continue;
+      }
+      original = node.querySelector("GlobalNoteTA_o_node").textContent;   // converted but not this var
       // console.log(original);
     } else {
-      original = node.textContent;
+      original = node.textContent;                                        // never converted
     }
     const converted = convText(original, table, longestKey.length);
-    if (converted !== original) {
+    if (
+      (node.nodeName === 'GLOBALNOTETA_W_NODE') ||
+      (converted !== original)
+    ) {
       nodesToUpdate.push({ node, converted });
       nodesConv++;
       charsConv += original.length;
-    } else {
-      // console.log(original);
     }
+    // console.log(original);
     nodesHand++;
     charsHand += original.length;
   }
