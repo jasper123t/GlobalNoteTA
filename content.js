@@ -80,6 +80,7 @@ async function readMenu() {
   menuVarientSelect.addEventListener('change', (e) => {
     currentVariant = e.target.value;
     chrome.storage.local.set({ currentVariant });
+    loadStyl();
     if (conversionEnabled) convPage();
   });
 
@@ -118,12 +119,18 @@ function loadMenu() {
 
 function loadStyl() {
   docStyle = document.documentElement.style;
+  const vs = ['hans', 'hant', 'cn', 'tw', 'hk', 'my', 'sg', 'mo']
   if (showOriginal) {
-    docStyle.setProperty('--original-display', 'inline');
-    docStyle.setProperty('--converted-display', 'none');
+    docStyle.setProperty('--show-org', 'inline');
+    for (v of vs) {
+      docStyle.setProperty(`--show-${v}`, 'none');
+    }
   } else {
-    docStyle.setProperty('--original-display', 'none');
-    docStyle.setProperty('--converted-display', 'inline');
+    docStyle.setProperty('--show-org', 'none');
+    for (v of vs) {
+      docStyle.setProperty(`--show-${v}`, 'none');
+    }
+    docStyle.setProperty(`--show-${currentVariant.split("-")[1]}`, 'inline');
   }
 
   if (highlightEnabled) {
@@ -155,63 +162,127 @@ function readPopup() {
 
 function convPage() { // todo: cleanup
   if (!conversionEnabled) return;
-  console.log('Converting page to variant:', currentVariant);
+  // console.log('Converting page to variant:', currentVariant);
   const start = performance.now();
+  
+  const skipList = [
+    'SCRIPT', 'STYLE',
+    'GLOBALNOTETA_PHRASE', 'GLOBALNOTETA_O_NODE',
+    'GLOBALNOTETA_C_NODE_ZH-CN', 'GLOBALNOTETA_C_NODE_ZH-TW', 'GLOBALNOTETA_C_NODE_ZH-HK',
+    'GLOBALNOTETA_C_NODE_ZH-MY', 'GLOBALNOTETA_C_NODE_ZH-SG', 'GLOBALNOTETA_C_NODE_ZH-MO',
+    'GLOBALNOTETA_C_NODE_ZH-HANS', 'GLOBALNOTETA_C_NODE_ZH-HANT'
+  ];
+  const walker = document.createTreeWalker(
+    document.body,
+    NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT,
+    { 
+      acceptNode(node) { 
+        if (node.nodeType === Node.TEXT_NODE) {               // handle untouched text
+          if (skipList.includes(node.parentNode.nodeName)) {  // skip skipList
+            return NodeFilter.FILTER_REJECT;
+          }
+          if (!node.textContent.trim()) {                     // skip whitespace text
+            return NodeFilter.FILTER_REJECT;
+          }
+          let ancestor = node.parentNode;                     // skip globalnoteta menu
+          while (ancestor) {
+            if (ancestor.id === "globalnoteta-menu") {
+              return NodeFilter.FILTER_REJECT;
+            }
+            ancestor = ancestor.parentNode;
+          }
+          // console.log("'"+node.textContent+"'");
+          // console.log(node.parentElement.nodeName);
+          // console.log(node.parentNode.nodeName);
+          return NodeFilter.FILTER_ACCEPT; 
+        }
+        if (node.nodeType === Node.ELEMENT_NODE) {            // handle converted text
+          if (node.nodeName === 'GLOBALNOTETA_W_NODE') {
+            // console.log("added");
+            return NodeFilter.FILTER_ACCEPT;
+          }
+          return NodeFilter.FILTER_SKIP;
+        }
+      }
+    },
+    false
+  );
+
+  [nodesConv, charsConv, nodesHand, charsHand] = convNode(walker);
+
+  const end = performance.now();
+  const duration = end - start;
+  console.log(
+    `Handled   `+
+    nodesHand.toString().padStart(5, " ")+` nodes with `+
+    charsHand.toString().padStart(7, " ")+` chars in `+
+    duration.toFixed(2).toString().padStart(7, " ")+` ms.`
+  );
+  // console.log(
+  //   `Converted `+
+  //   nodesConv.toString().padStart(5, " ")+` nodes with `+
+  //   charsConv.toString().padStart(7, " ")+` chars in `
+  // );
+}
+
+function convNode(walker) { // todo: cleanup
   const table = tables[currentVariant];
   const keys = Object.keys(table);
   const longestKey = keys.reduce((a, b) => (b.length > a.length ? b : a), "");
-  let node;
-  let nodesConverted = 0;
-  let charsHandled = 0;
   const nodesToUpdate = [];
-  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+  let node;
+  let nodesHand = 0;
+  let charsHand = 0;
+  let nodesConv = 0;
+  let charsConv = 0;
 
   while (node = walker.nextNode()) {
-    if (
-      node.parentElement
-      && node.parentElement.tagName !== 'SCRIPT'
-      && node.parentElement.tagName !== 'STYLE'
-      && node.parentElement.tagName !== 'GLOBALNOTETA_O_NODE'
-      && node.parentElement.tagName !== 'GLOBALNOTETA_C_NODE'
-      && node.parentElement.tagName !== 'GLOBALNOTETA_PHRASE'
-    ) {
-      const original = node.textContent;
-      const converted = convText(original, table, longestKey.length);
-      if (converted !== original) {
-        nodesToUpdate.push({ node, converted });
-        nodesConverted++;
-        charsHandled += original.length;
+    if (node.nodeName === 'GLOBALNOTETA_W_NODE') {
+      if (node.querySelector(`GlobalNoteTA_c_node_${currentVariant}`)) {  // converted to this var
+        continue;
       }
+      original = node.querySelector("GlobalNoteTA_o_node").textContent;   // converted but not this var
+      // console.log(original);
+    } else {
+      original = node.textContent;                                        // never converted
     }
+    const converted = convText(original, table, longestKey.length);
+    if (
+      (node.nodeName === 'GLOBALNOTETA_W_NODE') ||
+      (converted !== original)
+    ) {
+      nodesToUpdate.push({ node, converted });
+      nodesConv++;
+      charsConv += original.length;
+    }
+    // console.log(original);
+    nodesHand++;
+    charsHand += original.length;
   }
 
   // Replace text nodes with HTML spans
   nodesToUpdate.forEach(({ node, converted }) => {
-    const w_node = document.createElement('GlobalNoteTA_w_node');
+    if (node.nodeName === 'GLOBALNOTETA_W_NODE') {
+      if (node.querySelector(`GlobalNoteTA_c_node_${currentVariant}`)) {
+        // console.log('skipping same var');
+        return;
+      }
+      w_node = node;
+    } else {
+      w_node = document.createElement('GlobalNoteTA_w_node');
 
-    const o_node = document.createElement('GlobalNoteTA_o_node');
-    o_node.textContent = node.textContent;
-    w_node.appendChild(o_node);
-
-    const c_node = document.createElement('GlobalNoteTA_c_node');
+      const o_node = document.createElement('GlobalNoteTA_o_node');
+      o_node.textContent = node.textContent;
+      w_node.appendChild(o_node);
+    }
+    const c_node = document.createElement(`GlobalNoteTA_c_node_${currentVariant}`);
     c_node.innerHTML = converted;
     w_node.appendChild(c_node);
 
     node.parentElement.replaceChild(w_node, node);
-
     // console.log(node.parentElement);
   });
-
-  const end = performance.now();
-  const duration = end - start;
-  console.log(`Converted `+
-  nodesConverted.toString().padStart(5, " ")+` nodes with `+
-  charsHandled.toString().padStart(7, " ")+` chars in `+
-  duration.toFixed(2).toString().padStart(7, " ")+` ms.`);
-}
-
-function convNode() { // todo: cleanup
-    convText();
+  return [nodesConv, charsConv, nodesHand, charsHand];
 }
 
 function convText(text, table, maxLength) {
