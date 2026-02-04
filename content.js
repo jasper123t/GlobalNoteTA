@@ -9,7 +9,7 @@ async function init() {
   console.log('Ready');
 
   nodeList = initScan();
-  if (conversionEnabled) convPage(nodeList);
+  if (conversionEnabled) nodeList = convPage(nodeList);
 
   new MutationObserver((mutationsList) => {
     for (const mutation of mutationsList) {
@@ -31,8 +31,8 @@ async function init() {
         });
       }
     }
-    if (conversionEnabled) convPage(nodeList);
-    console.log(nodeList.length);
+    // console.log(nodeList.length);
+    if (conversionEnabled) nodeList = convPage(nodeList);
   }).observe(document.body, { childList: true, subtree: true });
 }
 
@@ -115,7 +115,7 @@ function loadPref() {
 
 function initScan() {
   console.log('init scan');
-  
+
   const walker = document.createTreeWalker(
     document.body,
     NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT,
@@ -127,7 +127,7 @@ function initScan() {
   while (node = walker.nextNode()) {
     newList.push(node);
   }
-  
+
   return newList;
 }
 
@@ -142,7 +142,7 @@ async function readMenu() {
     conversionEnabled = e.target.checked;
     chrome.storage.local.set({ conversionEnabled });
     nodeList = initScan();
-    if (conversionEnabled) convPage(nodeList);
+    if (conversionEnabled) nodeList = convPage(nodeList);
   });
 
   const menuShowOriginal = document.getElementById('show-original');
@@ -168,7 +168,7 @@ async function readMenu() {
     chrome.storage.local.set({ currentVariant });
     loadStyl();
     nodeList = initScan();
-    if (conversionEnabled) convPage(nodeList);
+    if (conversionEnabled) nodeList = convPage(nodeList);
   });
 
   const closeBtn = document.querySelector('close-btn');
@@ -178,7 +178,7 @@ async function readMenu() {
 
   document.getElementById('convert-now').addEventListener('click', () => {
     nodeList = initScan();
-    convPage(nodeList);
+    nodeList = convPage(nodeList);
   });
 }
 
@@ -240,7 +240,7 @@ function readPopup() {
       // currentVariant = request.currentVariant; // if needed
       chrome.storage.local.set({ conversionEnabled });
       nodeList = initScan();
-      if (conversionEnabled) convPage(nodeList);
+      if (conversionEnabled) nodeList = convPage(nodeList);
       sendResponse({ success: true });
     }
     if (request.action === 'openMenu') {
@@ -255,12 +255,17 @@ function convPage(nodeList) {
   const longestKey = keys.reduce((a, b) => (b.length > a.length ? b : a), "");
 
   const observer = new IntersectionObserver((entries) => {
+    const start = performance.now();
+    nodesHand = 0;
+    charsHand = 0;
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         observer.unobserve(entry.target);
         if (entry.target.nodeName === 'GLOBALNOTETA_W_NODE') {
           if (!entry.target.querySelector(`GlobalNoteTA_c_node_${currentVariant}`)) {
+            nodesHand++;
             entry.target.appendChild(convNode(entry.target, table, longestKey));
+            charsHand += entry.target.firstChild.textContent.length;
           }
         } else {
           // console.log(entry.target);
@@ -268,6 +273,8 @@ function convPage(nodeList) {
             // console.log(child);
             if (child.nodeType === Node.TEXT_NODE) {
               if (child.textContent.trim()) {
+                nodesHand++;
+                charsHand +=child.textContent.length;
                 newChild = convNode(child, table, longestKey);
                 if (newChild !== child) {
                   entry.target.replaceChild(newChild, child);
@@ -278,6 +285,14 @@ function convPage(nodeList) {
         }
       }
     });
+    const end = performance.now();
+    const duration = end - start;
+    console.log(
+      `Handled   `+
+      nodesHand.toString().padStart(5, " ")+` nodes with `+
+      charsHand.toString().padStart(7, " ")+` chars in `+
+      duration.toFixed(2).toString().padStart(7, " ")+` ms.`
+    );
   }, {
     threshold: 0,
     rootMargin: "50%"
@@ -297,17 +312,14 @@ function convPage(nodeList) {
       observer.observe(node.parentElement);
     }
   }
+  return node;
 }
 
 function convNode(node, table, longestKey) {
-  // console.log('converting');
-  // console.log(node);
-  
   if (node.nodeName === 'GLOBALNOTETA_W_NODE') {
-    // console.log(node.quglobalNoteTA_o_node);
     original = node.firstChild.textContent;
   } else {
-    original = node.textContent;                                        // never converted
+    original = node.textContent;
   }
   const converted = convText(original, table, longestKey.length);
   if (
@@ -320,7 +332,6 @@ function convNode(node, table, longestKey) {
       return c_node;
     } else {
       w_node = document.createElement('GlobalNoteTA_w_node');
-
       const o_node = document.createElement('GlobalNoteTA_o_node');
       o_node.textContent = original;
       w_node.appendChild(o_node);
