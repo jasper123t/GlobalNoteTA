@@ -264,8 +264,8 @@ function convPage(nodeList) {
         if (entry.target.nodeName === 'GLOBALNOTETA_W_NODE') {
           if (!entry.target.querySelector(`GlobalNoteTA_c_node_${currentVariant}`)) {
             nodesHand++;
-            entry.target.appendChild(convNode(entry.target, table, longestKey));
             charsHand += entry.target.firstChild.textContent.length;
+            entry.target.appendChild(convNode(entry.target, table, longestKey));
           }
         } else {
           // console.log(entry.target);
@@ -274,7 +274,7 @@ function convPage(nodeList) {
             if (child.nodeType === Node.TEXT_NODE) {
               if (child.textContent.trim()) {
                 nodesHand++;
-                charsHand +=child.textContent.length;
+                charsHand += child.textContent.length;
                 newChild = convNode(child, table, longestKey);
                 if (newChild !== child) {
                   entry.target.replaceChild(newChild, child);
@@ -295,7 +295,7 @@ function convPage(nodeList) {
     );
   }, {
     threshold: 0,
-    rootMargin: "50%"
+    rootMargin: "100%"
   });
 
   for (node of nodeList) {
@@ -312,7 +312,7 @@ function convPage(nodeList) {
       observer.observe(node.parentElement);
     }
   }
-  return node;
+  return nodeList;
 }
 
 function convNode(node, table, longestKey) {
