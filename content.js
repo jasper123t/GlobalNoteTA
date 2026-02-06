@@ -12,16 +12,16 @@ async function init() {
   if (conversionEnabled) nodeList = convPage(nodeList);
 
   new MutationObserver((mutationsList) => {
-    console.log('mut');
+    // console.log('mut');
     for (const mutation of mutationsList) {
       if (
         mutation.addedNodes[0] &&
         mutation.addedNodes[0].nodeName !== 'GLOBALNOTETA_W_NODE'
       ) {
         if (mutation.type === "childList") {
-          console.log(mutation);
+          // console.log(mutation);
           mutation.addedNodes.forEach(node => {
-            console.log(node);
+            // console.log(node);
             const walker = document.createTreeWalker(
               node,
               NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT,
@@ -29,8 +29,8 @@ async function init() {
               false
             );
             while (node = walker.nextNode()) {
-              console.log('pushing');
-              console.log(node);
+              // console.log('pushing');
+              // console.log(node);
               nodeList.push(node);
             }
           });
