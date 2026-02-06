@@ -31,41 +31,36 @@
     color: #808080;
     cursor: pointer;
     }
-    GlobalNoteTA_phrase:nth-child(2n) {
-    background-color: var(--debug-color0, none);
-    color: var(--debug-text);
+
+    GlobalNoteTA_phrase {
+        background-color: inherit;
+        color: inherit;
     }
-    GlobalNoteTA_phrase:nth-child(2n+1) {
-    background-color: var(--debug-color1, none);
-    color: var(--debug-text);
+    body[gnta-high="off"] GlobalNoteTA_phrase {
+        background-color: inherit;
+        color: inherit;
     }
-    globalnoteta_o_node {
-    display: var(--show-org, none);
+    body[gnta-high="on"] GlobalNoteTA_phrase:nth-of-type(2n) {
+        background-color: orange;
+        color: black;
     }
-    globalnoteta_c_node_zh-hans {
-    display: var(--show-hans, none);
+    body[gnta-high="on"] GlobalNoteTA_phrase:nth-of-type(2n+1) {
+        background-color: yellow;
+        color: black;
     }
-    globalnoteta_c_node_zh-hant {
-    display: var(--show-hant, none);
-    }
-    globalnoteta_c_node_zh-cn {
-    display: var(--show-cn, none);
-    }
-    globalnoteta_c_node_zh-tw {
-    display: var(--show-tw, none);
-    }
-    globalnoteta_c_node_zh-hk {
-    display: var(--show-hk, inline);
-    }
-    globalnoteta_c_node_zh-my {
-    display: var(--show-my, none);
-    }
-    globalnoteta_c_node_zh-sg {
-    display: var(--show-sg, none);
-    }
-    globalnoteta_c_node_zh-mo {
-    display: var(--show-mo, none);
-    }
+
+    globalnoteta_w_node > * { display: none; }
+    
+    body[gnta-var="org"] globalnoteta_w_node > globalnoteta_o_node { display: inline; }
+    body[gnta-var="zh-hans"] globalnoteta_w_node > globalnoteta_c_node_zh-hans { display: inline; }
+    body[gnta-var="zh-hant"] globalnoteta_w_node > globalnoteta_c_node_zh-hant { display: inline; }
+    body[gnta-var="zh-cn"] globalnoteta_w_node > globalnoteta_c_node_zh-cn { display: inline; }
+    body[gnta-var="zh-hk"] globalnoteta_w_node > globalnoteta_c_node_zh-hk { display: inline; }
+    body[gnta-var="zh-tw"] globalnoteta_w_node > globalnoteta_c_node_zh-tw { display: inline; }
+    body[gnta-var="zh-my"] globalnoteta_w_node > globalnoteta_c_node_zh-my { display: inline; }
+    body[gnta-var="zh-sg"] globalnoteta_w_node > globalnoteta_c_node_zh-sg { display: inline; }
+    body[gnta-var="zh-mo"] globalnoteta_w_node > globalnoteta_c_node_zh-mo { display: inline; }
+
 </style>
 <close-btn>×</close-btn>
 <div>

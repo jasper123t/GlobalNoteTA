@@ -12,26 +12,32 @@ async function init() {
   if (conversionEnabled) nodeList = convPage(nodeList);
 
   new MutationObserver((mutationsList) => {
+    console.log('mut');
     for (const mutation of mutationsList) {
-      if (mutation.type === "childList") {
-        mutation.addedNodes.forEach(node => {
-          // console.log(node);
-          const walker = document.createTreeWalker(
-            node,
-            NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT,
-            { acceptNode: treeFilter },
-            false
-          );
-          while (node = walker.nextNode()) {
-            // console.log('pushing');
-            // console.log(node);
-            nodeList.push(node);
-          }
-          // console.log('done');
-        });
+      if (
+        mutation.addedNodes[0] &&
+        mutation.addedNodes[0].nodeName !== 'GLOBALNOTETA_W_NODE'
+      ) {
+        if (mutation.type === "childList") {
+          console.log(mutation);
+          mutation.addedNodes.forEach(node => {
+            console.log(node);
+            const walker = document.createTreeWalker(
+              node,
+              NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT,
+              { acceptNode: treeFilter },
+              false
+            );
+            while (node = walker.nextNode()) {
+              console.log('pushing');
+              console.log(node);
+              nodeList.push(node);
+            }
+          });
+        }
       }
     }
-    // console.log(nodeList.length);
+    // console.log('done');
     if (conversionEnabled) nodeList = convPage(nodeList);
   }).observe(document.body, { childList: true, subtree: true });
 }
@@ -207,28 +213,17 @@ function loadMenu() {
 
 function loadStyl() {
   docStyle = document.documentElement.style;
-  const vs = ['hans', 'hant', 'cn', 'tw', 'hk', 'my', 'sg', 'mo']
+  
   if (showOriginal) {
-    docStyle.setProperty('--show-org', 'inline');
-    for (v of vs) {
-      docStyle.setProperty(`--show-${v}`, 'none');
-    }
+    document.body.setAttribute("gnta-var", "org");
   } else {
-    docStyle.setProperty('--show-org', 'none');
-    for (v of vs) {
-      docStyle.setProperty(`--show-${v}`, 'none');
-    }
-    docStyle.setProperty(`--show-${currentVariant.split("-")[1]}`, 'inline');
+    document.body.setAttribute("gnta-var", currentVariant);
   }
 
   if (highlightEnabled) {
-    docStyle.setProperty('--debug-color0', 'orange');
-    docStyle.setProperty('--debug-color1', 'yellow');
-    docStyle.setProperty('--debug-text', 'black');
+    document.body.setAttribute("gnta-high", "on");
   } else {
-    docStyle.setProperty('--debug-color0', '');
-    docStyle.setProperty('--debug-color1', '');
-    docStyle.setProperty('--debug-text', '');
+    document.body.setAttribute("gnta-high", "off");
   }
 }
 
@@ -250,6 +245,7 @@ function readPopup() {
 }
 
 function convPage(nodeList) {
+  // console.log(nodeList.length);
   const table = tables[currentVariant];
   const keys = Object.keys(table);
   const longestKey = keys.reduce((a, b) => (b.length > a.length ? b : a), "");
@@ -312,7 +308,8 @@ function convPage(nodeList) {
       observer.observe(node.parentElement);
     }
   }
-  return nodeList;
+  return [];
+  // return nodeList;
 }
 
 function convNode(node, table, longestKey) {
@@ -349,12 +346,10 @@ function convText(text, table, maxLength) {
   let i = 0;
   while (i < text.length) {  // todo: rewrite and use strstr
     let matched = false;
-    // Try longest match first (up to longestKey.length chars)
     for (let len = Math.min(maxLength, text.length - i); len > 0; len--) {
       const phrase = text.substr(i, len);
       if (table[phrase]) {
         const replacement = Array.isArray(table[phrase]) ? table[phrase][0] : table[phrase]; // isArray should always be false, will confirm later
-        // Wrap replacement in a span with highlight class
         result += `<GlobalNoteTA_phrase>${replacement}</GlobalNoteTA_phrase>`;
         i += len;
         matched = true;
@@ -367,9 +362,6 @@ function convText(text, table, maxLength) {
       i++;
     }
   }
-  // if (conversions > 0) {
-  //   console.log(`Converted ${conversions} phrases in text: "${text.substring(0, 30)}..." to "${result.substring(0, 30)}..."`);
-  // }
   return result;
 }
 
