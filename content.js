@@ -139,7 +139,6 @@ function initScan() {
 
 async function readMenu() {
   await loadMenu();
-  loadStyl();
   readPopup();
 
   const menuEnableConversion = document.getElementById('enable-conversion');
@@ -172,7 +171,6 @@ async function readMenu() {
   menuVarientSelect.addEventListener('change', (e) => {
     currentVariant = e.target.value;
     chrome.storage.local.set({ currentVariant });
-    loadStyl();
     nodeList = initScan();
     if (conversionEnabled) nodeList = convPage(nodeList);
   });
@@ -212,19 +210,40 @@ function loadMenu() {
 }
 
 function loadStyl() {
-  docStyle = document.documentElement.style;
-  
-  if (showOriginal) {
-    document.body.setAttribute("gnta-var", "org");
-  } else {
-    document.body.setAttribute("gnta-var", currentVariant);
-  }
+  const styleObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        styleObserver.unobserve(entry.target);
+        
+        if (showOriginal) {
+          entry.target.setAttribute("gnta-var", "org");
+        } else {
+          entry.target.setAttribute("gnta-var", currentVariant);
+        }
 
-  if (highlightEnabled) {
-    document.body.setAttribute("gnta-high", "on");
-  } else {
-    document.body.setAttribute("gnta-high", "off");
-  }
+        if (highlightEnabled) {
+          entry.target.setAttribute("gnta-high", "on");
+        } else {
+          entry.target.setAttribute("gnta-high", "off");
+        }
+      }
+    })
+  }, {
+    rootMargin: "100%"
+  });
+
+  styleObserver.disconnect();
+
+  document.querySelectorAll("globalnoteta_w_node").forEach(wnode => {
+    if (
+      !((wnode.getAttribute("gnta-high") === "on") === highlightEnabled) ||
+      !((wnode.getAttribute("gnta-var") === "org") === showOriginal) || 
+      (!showOriginal && (wnode.getAttribute("gnta-var") !== currentVariant))
+    ) {
+      // console.log("mismatch");
+      styleObserver.observe(wnode);
+    }
+  });
 }
 
 function readPopup() {
@@ -281,6 +300,7 @@ function convPage(nodeList) {
         }
       }
     });
+    loadStyl();
     const end = performance.now();
     const duration = end - start;
     console.log(
@@ -290,7 +310,6 @@ function convPage(nodeList) {
       duration.toFixed(2).toString().padStart(7, " ")+` ms.`
     );
   }, {
-    threshold: 0,
     rootMargin: "100%"
   });
 
