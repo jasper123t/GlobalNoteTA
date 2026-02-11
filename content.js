@@ -383,7 +383,7 @@ function convText(text) {
   let i = 0;
   while (i < text.length) {  // todo: rewrite and use strstr
     let matched = false;
-    for (let len = Math.min(longestKey.maxLength, text.length - i); len > 0; len--) {
+    for (let len = Math.min(longestKey.length, text.length - i); len > 0; len--) {
       const phrase = text.substr(i, len);
       if (table[phrase]) {
         const replacement = Array.isArray(table[phrase]) ? table[phrase][0] : table[phrase]; // isArray should always be false, will confirm later
