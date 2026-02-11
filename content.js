@@ -22,6 +22,12 @@ async function init() {
           // console.log(mutation);
           mutation.addedNodes.forEach(node => {
             // console.log(node);
+            if (node.nodeType === Node.TEXT_NODE) {
+              node = node.parentNode;
+            }
+            if (!node) {
+              return;
+            }
             const walker = document.createTreeWalker(
               node,
               NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT,
@@ -124,6 +130,7 @@ function loadPref() {
 
 function initScan() {
   console.log('init scan');
+  const start = performance.now();
 
   const walker = document.createTreeWalker(
     document.body,
@@ -137,6 +144,9 @@ function initScan() {
     newList.push(node);
   }
 
+  const end = performance.now();
+  const duration = end - start;
+  console.log(`Scan took ${duration.toFixed(2)}ms`);
   return newList;
 }
 
@@ -220,7 +230,7 @@ function loadStyl() {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         styleObserver.unobserve(entry.target);
-        
+
         if (showOriginal) {
           entry.target.setAttribute("gnta-var", "org");
         } else {
@@ -243,7 +253,7 @@ function loadStyl() {
   document.querySelectorAll("globalnoteta_w_node").forEach(wnode => {
     if (
       !((wnode.getAttribute("gnta-high") === "on") === highlightEnabled) ||
-      !((wnode.getAttribute("gnta-var") === "org") === showOriginal) || 
+      !((wnode.getAttribute("gnta-var") === "org") === showOriginal) ||
       (!showOriginal && (wnode.getAttribute("gnta-var") !== currentVariant))
     ) {
       // console.log("mismatch");
@@ -357,7 +367,7 @@ function convNode(node) {
       o_node.textContent = original;
       w_node.appendChild(o_node);
       w_node.appendChild(c_node);
-      
+
       if (showOriginal) {
         w_node.setAttribute("gnta-var", "org");
       } else {
