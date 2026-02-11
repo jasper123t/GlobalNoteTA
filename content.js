@@ -116,6 +116,9 @@ function loadPref() {
     conversionEnabled = result.conversionEnabled || false;
     showOriginal = result.showOriginal || false;
     highlightEnabled = result.highlightEnabled || false;
+    table = tables[currentVariant];
+    keys = Object.keys(table);
+    longestKey = keys.reduce((a, b) => (b.length > a.length ? b : a), "");
   });
 }
 
@@ -171,6 +174,9 @@ async function readMenu() {
   menuVarientSelect.addEventListener('change', (e) => {
     currentVariant = e.target.value;
     chrome.storage.local.set({ currentVariant });
+    table = tables[currentVariant];
+    keys = Object.keys(table);
+    longestKey = keys.reduce((a, b) => (b.length > a.length ? b : a), "");
     nodeList = initScan();
     if (conversionEnabled) nodeList = convPage(nodeList);
   });
@@ -265,22 +271,19 @@ function readPopup() {
 
 function convPage(nodeList) {
   // console.log(nodeList.length);
-  const table = tables[currentVariant];
-  const keys = Object.keys(table);
-  const longestKey = keys.reduce((a, b) => (b.length > a.length ? b : a), "");
 
-  const observer = new IntersectionObserver((entries) => {
+  const convObserver = new IntersectionObserver((entries) => {
     const start = performance.now();
     nodesHand = 0;
     charsHand = 0;
     entries.forEach(entry => {
       if (entry.isIntersecting) {
-        observer.unobserve(entry.target);
+        convObserver.unobserve(entry.target);
         if (entry.target.nodeName === 'GLOBALNOTETA_W_NODE') {
           if (!entry.target.querySelector(`GlobalNoteTA_c_node_${currentVariant}`)) {
             nodesHand++;
             charsHand += entry.target.firstChild.textContent.length;
-            entry.target.appendChild(convNode(entry.target, table, longestKey));
+            entry.target.appendChild(convNode(entry.target));
           }
         } else {
           // console.log(entry.target);
@@ -290,7 +293,7 @@ function convPage(nodeList) {
               if (child.textContent.trim()) {
                 nodesHand++;
                 charsHand += child.textContent.length;
-                newChild = convNode(child, table, longestKey);
+                newChild = convNode(child);
                 if (newChild !== child) {
                   entry.target.replaceChild(newChild, child);
                 }
@@ -313,10 +316,12 @@ function convPage(nodeList) {
     rootMargin: "100%"
   });
 
+  convObserver.disconnect();
+
   for (node of nodeList) {
     if (node.nodeName === 'GLOBALNOTETA_W_NODE') {
       if (!node.querySelector(`GlobalNoteTA_c_node_${currentVariant}`)) {
-        observer.observe(node);
+        convObserver.observe(node);
       }
     } else {
       if (node.parentElement == null) {
@@ -324,20 +329,20 @@ function convPage(nodeList) {
         // console.log(node);
         continue;
       }
-      observer.observe(node.parentElement);
+      convObserver.observe(node.parentElement);
     }
   }
   return [];
   // return nodeList;
 }
 
-function convNode(node, table, longestKey) {
+function convNode(node) {
   if (node.nodeName === 'GLOBALNOTETA_W_NODE') {
     original = node.firstChild.textContent;
   } else {
     original = node.textContent;
   }
-  const converted = convText(original, table, longestKey.length);
+  const converted = convText(original);
   if (
     (node.nodeName === 'GLOBALNOTETA_W_NODE') ||
     (converted !== original)
@@ -352,6 +357,19 @@ function convNode(node, table, longestKey) {
       o_node.textContent = original;
       w_node.appendChild(o_node);
       w_node.appendChild(c_node);
+      
+      if (showOriginal) {
+        w_node.setAttribute("gnta-var", "org");
+      } else {
+        w_node.setAttribute("gnta-var", currentVariant);
+      }
+
+      if (highlightEnabled) {
+        w_node.setAttribute("gnta-high", "on");
+      } else {
+        w_node.setAttribute("gnta-high", "off");
+      }
+
       return w_node;
     }
   } else {
@@ -359,13 +377,13 @@ function convNode(node, table, longestKey) {
   }
 }
 
-function convText(text, table, maxLength) {
+function convText(text) {
   let result = '';
   let conversions = 0;
   let i = 0;
   while (i < text.length) {  // todo: rewrite and use strstr
     let matched = false;
-    for (let len = Math.min(maxLength, text.length - i); len > 0; len--) {
+    for (let len = Math.min(longestKey.maxLength, text.length - i); len > 0; len--) {
       const phrase = text.substr(i, len);
       if (table[phrase]) {
         const replacement = Array.isArray(table[phrase]) ? table[phrase][0] : table[phrase]; // isArray should always be false, will confirm later
