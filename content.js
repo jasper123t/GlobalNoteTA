@@ -192,6 +192,7 @@ async function readMenu() {
     keys = Object.keys(table);
     longestKey = keys.reduce((a, b) => (b.length > a.length ? b : a), "");
     nodeList = initScan();
+    if (convObserver) convObserver.disconnect();
     if (conversionEnabled) nodeList = convPage(nodeList);
   });
 
@@ -292,7 +293,6 @@ function readPopup() {
 function convPage(nodeList) {
   // console.log(nodeList.length);
 
-  if (convObserver) convObserver.disconnect();
   convObserver = new IntersectionObserver((entries) => {
     const start = performance.now();
     nodesHand = 0;
