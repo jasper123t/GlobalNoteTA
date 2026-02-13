@@ -48,6 +48,10 @@ async function init() {
   }).observe(document.body, { childList: true, subtree: true });
 }
 
+// Module-scoped observers so we can disconnect previous instances
+let convObserver = null;
+let styleObserver = null;
+
 const skipList = [
   'SCRIPT', 'STYLE',
   'GLOBALNOTETA_PHRASE', 'GLOBALNOTETA_O_NODE',
@@ -226,21 +230,29 @@ function loadMenu() {
 }
 
 function loadStyl() {
-  const styleObserver = new IntersectionObserver((entries) => {
+  if (styleObserver) styleObserver.disconnect();
+  styleObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         styleObserver.unobserve(entry.target);
 
-        if (showOriginal) {
-          entry.target.setAttribute("gnta-var", "org");
-        } else {
-          entry.target.setAttribute("gnta-var", currentVariant);
+        if ((entry.target.getAttribute("gnta-high") === "on") !== highlightEnabled) {
+          if (highlightEnabled) {
+            entry.target.setAttribute("gnta-high", "on");
+          } else {
+            entry.target.setAttribute("gnta-high", "off");
+          }
         }
 
-        if (highlightEnabled) {
-          entry.target.setAttribute("gnta-high", "on");
-        } else {
-          entry.target.setAttribute("gnta-high", "off");
+        if (
+          ((entry.target.getAttribute("gnta-var") === "org") !== showOriginal) ||
+          (!showOriginal && (entry.target.getAttribute("gnta-var") !== currentVariant))
+        ) {
+          if (showOriginal) {
+            entry.target.setAttribute("gnta-var", "org");
+          } else {
+            entry.target.setAttribute("gnta-var", currentVariant);
+          }
         }
       }
     })
@@ -248,12 +260,10 @@ function loadStyl() {
     rootMargin: "100%"
   });
 
-  styleObserver.disconnect();
-
   document.querySelectorAll("globalnoteta_w_node").forEach(wnode => {
     if (
-      !((wnode.getAttribute("gnta-high") === "on") === highlightEnabled) ||
-      !((wnode.getAttribute("gnta-var") === "org") === showOriginal) ||
+      ((wnode.getAttribute("gnta-high") === "on") !== highlightEnabled) ||
+      ((wnode.getAttribute("gnta-var") === "org") !== showOriginal) ||
       (!showOriginal && (wnode.getAttribute("gnta-var") !== currentVariant))
     ) {
       // console.log("mismatch");
@@ -282,7 +292,8 @@ function readPopup() {
 function convPage(nodeList) {
   // console.log(nodeList.length);
 
-  const convObserver = new IntersectionObserver((entries) => {
+  if (convObserver) convObserver.disconnect();
+  convObserver = new IntersectionObserver((entries) => {
     const start = performance.now();
     nodesHand = 0;
     charsHand = 0;
@@ -326,8 +337,7 @@ function convPage(nodeList) {
     rootMargin: "100%"
   });
 
-  convObserver.disconnect();
-
+  
   for (node of nodeList) {
     if (node.nodeName === 'GLOBALNOTETA_W_NODE') {
       if (!node.querySelector(`GlobalNoteTA_c_node_${currentVariant}`)) {
