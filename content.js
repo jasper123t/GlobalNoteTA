@@ -188,6 +188,7 @@ async function readMenu() {
   menuVarientSelect.addEventListener('change', (e) => {
     currentVariant = e.target.value;
     chrome.storage.local.set({ currentVariant });
+    loadStyl();
     table = tables[currentVariant];
     keys = Object.keys(table);
     longestKey = keys.reduce((a, b) => (b.length > a.length ? b : a), "");
