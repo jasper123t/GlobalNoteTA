@@ -9,7 +9,7 @@
     border-radius: 10px;
     border: 5px solid #177860;
     padding: 10px;
-    z-index: 1000;
+    z-index: 5000;
     font-size: 12px;
     font-family: sans-serif;
     }
@@ -31,41 +31,36 @@
     color: #808080;
     cursor: pointer;
     }
-    GlobalNoteTA_phrase:nth-child(2n) {
-    background-color: var(--debug-color0, none);
-    color: var(--debug-text);
+
+    GlobalNoteTA_phrase {
+        background-color: inherit;
+        color: inherit;
     }
-    GlobalNoteTA_phrase:nth-child(2n+1) {
-    background-color: var(--debug-color1, none);
-    color: var(--debug-text);
+    globalnoteta_w_node[gnta-high="off"] GlobalNoteTA_phrase {
+        background-color: inherit;
+        color: inherit;
     }
-    globalnoteta_o_node {
-    display: var(--show-org, none);
+    globalnoteta_w_node[gnta-high="on"] GlobalNoteTA_phrase:nth-of-type(2n) {
+        background-color: orange;
+        color: black;
     }
-    globalnoteta_c_node_zh-hans {
-    display: var(--show-hans, none);
+    globalnoteta_w_node[gnta-high="on"] GlobalNoteTA_phrase:nth-of-type(2n+1) {
+        background-color: yellow;
+        color: black;
     }
-    globalnoteta_c_node_zh-hant {
-    display: var(--show-hant, none);
-    }
-    globalnoteta_c_node_zh-cn {
-    display: var(--show-cn, none);
-    }
-    globalnoteta_c_node_zh-tw {
-    display: var(--show-tw, none);
-    }
-    globalnoteta_c_node_zh-hk {
-    display: var(--show-hk, inline);
-    }
-    globalnoteta_c_node_zh-my {
-    display: var(--show-my, none);
-    }
-    globalnoteta_c_node_zh-sg {
-    display: var(--show-sg, none);
-    }
-    globalnoteta_c_node_zh-mo {
-    display: var(--show-mo, none);
-    }
+
+    globalnoteta_w_node > * { display: none; }
+    
+    globalnoteta_w_node[gnta-var="org"]  globalnoteta_o_node { display: inline; }
+    globalnoteta_w_node[gnta-var="zh-hans"]  globalnoteta_c_node_zh-hans { display: inline; }
+    globalnoteta_w_node[gnta-var="zh-hant"]  globalnoteta_c_node_zh-hant { display: inline; }
+    globalnoteta_w_node[gnta-var="zh-cn"]  globalnoteta_c_node_zh-cn { display: inline; }
+    globalnoteta_w_node[gnta-var="zh-hk"]  globalnoteta_c_node_zh-hk { display: inline; }
+    globalnoteta_w_node[gnta-var="zh-tw"]  globalnoteta_c_node_zh-tw { display: inline; }
+    globalnoteta_w_node[gnta-var="zh-my"]  globalnoteta_c_node_zh-my { display: inline; }
+    globalnoteta_w_node[gnta-var="zh-sg"]  globalnoteta_c_node_zh-sg { display: inline; }
+    globalnoteta_w_node[gnta-var="zh-mo"]  globalnoteta_c_node_zh-mo { display: inline; }
+
 </style>
 <close-btn>×</close-btn>
 <div>
