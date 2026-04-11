@@ -156,6 +156,9 @@ function initScan() {
 
 async function readMenu() {
   await loadMenu();
+  if (!conversionEnabled) {
+    document.getElementById("globalnoteta-menu").style.display = "none";
+  }
   readPopup();
 
   const menuEnableConversion = document.getElementById('enable-conversion');
@@ -282,7 +285,10 @@ function readPopup() {
       // currentVariant = request.currentVariant; // if needed
       chrome.storage.local.set({ conversionEnabled });
       nodeList = initScan();
-      if (conversionEnabled) nodeList = convPage(nodeList);
+      if (conversionEnabled) {
+        nodeList = convPage(nodeList);
+        document.getElementById("globalnoteta-menu").style.display = "block";
+      }
       sendResponse({ success: true });
     }
     if (request.action === 'openMenu') {
