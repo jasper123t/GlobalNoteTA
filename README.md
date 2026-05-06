@@ -40,19 +40,22 @@ Open-source, align with Wikipedia's terms.
 
 ### How is this "made"
 
-- havn't really read the code yet
+- <del>havn't really read the code yet</del> (I've read it I think, don't really remember)
 - havn't done much testing yet
-- current state is basically Minimum Viable Product
+- current state is basically Minimum Viable Product (since testing on firefox is not that straiforward, none is done yet, but it shouldn't work anyways since I basically haven't touched the manifest, seems to work in Edge/Chrome tho)
 - already used 48% of free tier credit, will start using non vscode ai to vibe
 
 ### todo
 
 - [ ] bugs
-  - [ ] css for debug highlight and show original might not be loaded
-    - [ ] seems to be fixed, but conversion can happen earlier
+  - [x] css for debug highlight and show original might not be loaded
+    - [x] seems to be fixed, but conversion can happen earlier
+  - [x] text can disappear when:
+    1. conversion is switched off
+    2. variant is switched to one that had not been selected previously while conversion was enabled
 - [ ] clean up ai mess
-  - [ ] tables loading slowly
-  - [ ] table names (s2t, t2s)
+  - [x] tables loading slowly
+  - [x] table names (s2t, t2s)
 - [ ] performance issue
 - [ ] floating menu
   - [ ] progress bar
