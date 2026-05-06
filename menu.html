@@ -1,5 +1,5 @@
 <style>
-    #globalnoteta-menu {
+  #globalnoteta-menu {
     user-select: none;
     position: fixed;
     bottom: 10px;
@@ -12,13 +12,13 @@
     z-index: 5000;
     font-size: 12px;
     font-family: sans-serif;
-    }
-    #globalnoteta-menu button {
+  }
+  #globalnoteta-menu button {
     margin: 2px;
     padding: 5px 10px;
     cursor: pointer;
-    }
-    #globalnoteta-menu close-btn {
+  }
+  #globalnoteta-menu close-btn {
     position: absolute;
     top: 0px;
     right: 0px;
@@ -30,57 +30,81 @@
     font-weight: bold;
     color: #808080;
     cursor: pointer;
-    }
+  }
 
-    GlobalNoteTA_phrase {
-        background-color: inherit;
-        color: inherit;
-    }
-    globalnoteta_w_node[gnta-high="off"] GlobalNoteTA_phrase {
-        background-color: inherit;
-        color: inherit;
-    }
-    globalnoteta_w_node[gnta-high="on"] GlobalNoteTA_phrase:nth-of-type(2n) {
-        background-color: orange;
-        color: black;
-    }
-    globalnoteta_w_node[gnta-high="on"] GlobalNoteTA_phrase:nth-of-type(2n+1) {
-        background-color: yellow;
-        color: black;
-    }
+  GlobalNoteTA_phrase {
+    background-color: inherit;
+    color: inherit;
+  }
+  globalnoteta_w_node[gnta-high="off"] GlobalNoteTA_phrase {
+    background-color: inherit;
+    color: inherit;
+  }
+  globalnoteta_w_node[gnta-high="on"] GlobalNoteTA_phrase:nth-of-type(2n) {
+    background-color: orange;
+    color: black;
+  }
+  globalnoteta_w_node[gnta-high="on"] GlobalNoteTA_phrase:nth-of-type(2n + 1) {
+    background-color: yellow;
+    color: black;
+  }
 
-    globalnoteta_w_node > * { display: none; }
-    
-    globalnoteta_w_node[gnta-var="org"]  globalnoteta_o_node { display: inline; }
-    globalnoteta_w_node[gnta-var="zh-hans"]  globalnoteta_c_node_zh-hans { display: inline; }
-    globalnoteta_w_node[gnta-var="zh-hant"]  globalnoteta_c_node_zh-hant { display: inline; }
-    globalnoteta_w_node[gnta-var="zh-cn"]  globalnoteta_c_node_zh-cn { display: inline; }
-    globalnoteta_w_node[gnta-var="zh-hk"]  globalnoteta_c_node_zh-hk { display: inline; }
-    globalnoteta_w_node[gnta-var="zh-tw"]  globalnoteta_c_node_zh-tw { display: inline; }
-    globalnoteta_w_node[gnta-var="zh-my"]  globalnoteta_c_node_zh-my { display: inline; }
-    globalnoteta_w_node[gnta-var="zh-sg"]  globalnoteta_c_node_zh-sg { display: inline; }
-    globalnoteta_w_node[gnta-var="zh-mo"]  globalnoteta_c_node_zh-mo { display: inline; }
+  globalnoteta_w_node > * {
+    display: none;
+  }
 
+  globalnoteta_w_node[gnta-var="org"] globalnoteta_o_node {
+    display: inline;
+  }
+  globalnoteta_w_node[gnta-var="zh-hans"] globalnoteta_c_node_zh-hans {
+    display: inline;
+  }
+  globalnoteta_w_node[gnta-var="zh-hant"] globalnoteta_c_node_zh-hant {
+    display: inline;
+  }
+  globalnoteta_w_node[gnta-var="zh-cn"] globalnoteta_c_node_zh-cn {
+    display: inline;
+  }
+  globalnoteta_w_node[gnta-var="zh-hk"] globalnoteta_c_node_zh-hk {
+    display: inline;
+  }
+  globalnoteta_w_node[gnta-var="zh-tw"] globalnoteta_c_node_zh-tw {
+    display: inline;
+  }
+  globalnoteta_w_node[gnta-var="zh-my"] globalnoteta_c_node_zh-my {
+    display: inline;
+  }
+  globalnoteta_w_node[gnta-var="zh-sg"] globalnoteta_c_node_zh-sg {
+    display: inline;
+  }
+  globalnoteta_w_node[gnta-var="zh-mo"] globalnoteta_c_node_zh-mo {
+    display: inline;
+  }
 </style>
 <close-btn>×</close-btn>
 <div>
-    <label><input type="checkbox" id="enable-conversion"> Enable Conversion</label>
+  <label
+    ><input type="checkbox" id="enable-conversion" /> Enable Conversion</label
+  >
 </div>
 <div>
-    <label><input type="checkbox" id="show-original"> Show Original</label>
+  <label><input type="checkbox" id="show-original" /> Show Original</label>
 </div>
 <div>
-    <label><input type="checkbox" id="enable-highlight"> Enable Debug Highlight</label>
+  <label
+    ><input type="checkbox" id="enable-highlight" /> Enable Debug
+    Highlight</label
+  >
 </div>
 <div>
-    <label>Target Variant:</label>
-    <select id="variant-select">
+  <label>Target Variant:</label>
+  <select id="variant-select">
     <option value="zh-cn">Simplified (China)</option>
     <option value="zh-tw" selected>Traditional (Taiwan)</option>
     <option value="zh-hk">Traditional (Hong Kong)</option>
     <option value="zh-sg">Simplified (Singapore)</option>
     <option value="zh-my">Simplified (Malaysia)</option>
     <option value="zh-mo">Traditional (Macau)</option>
-    </select>
+  </select>
 </div>
 <button id="convert-now">Convert Now</button>

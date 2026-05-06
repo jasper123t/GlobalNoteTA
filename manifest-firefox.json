@@ -3,7 +3,12 @@
   "name": "GlobalNoteTA",
   "version": "1.0",
   "description": "Convert webpage text between simplified and traditional Chinese using Wikipedia tables.",
-  "permissions": ["activeTab", "storage", "https://zh.wikipedia.org/*", "https://phab.wmfusercontent.org/*"],
+  "permissions": [
+    "activeTab",
+    "storage",
+    "https://zh.wikipedia.org/*",
+    "https://phab.wmfusercontent.org/*"
+  ],
   "background": {
     "scripts": ["background.js"]
   },
