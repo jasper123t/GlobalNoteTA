@@ -267,7 +267,17 @@ function loadStyl() {
             if (showOriginal) {
               entry.target.setAttribute("gnta-var", "org");
             } else {
-              entry.target.setAttribute("gnta-var", currentVariant);
+              if (
+                conversionEnabled ||
+                entry.target.querySelector(
+                  "globalnoteta_c_node_" + currentVariant,
+                )
+              ) {
+                entry.target.setAttribute("gnta-var", currentVariant);
+              } else {
+                // conversion off AND currentVariant c_node does not exist
+                entry.target.setAttribute("gnta-var", "org");
+              }
             }
           }
         }
